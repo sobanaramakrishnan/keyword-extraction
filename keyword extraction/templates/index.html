@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Extraction App</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            animation: fadeIn 1.5s ease;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #006064;
+        }
+
+        textarea {
+            width: 95%;
+            padding: 15px;
+            font-size: 1.1em;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            background-color: #f1f1f1;
+            margin-bottom: 20px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            border-color: #0288d1;
+            background-color: #ffffff;
+        }
+
+        button {
+            padding: 15px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #f0f8ff;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        li:hover {
+            background-color: #c1e1ec;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            font-size: 1.2em;
+            color: #0288d1;
+        }
+
+        .keywords-container {
+            margin-top: 30px;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Keyword Extraction</h1>
+        <form id="keyword-form" action="/extract_keywords" method="POST">
+            <textarea name="text" id="text-input" rows="8" placeholder="Enter text here...">{{ text if text else '' }}</textarea><br>
+            <button type="submit">Extract Keywords</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <p>Processing...</p>
+        </div>
+
+        <div class="keywords-container" id="keywords-container">
+            {% if keywords %}
+                <h2>Extracted Keywords:</h2>
+                <ul>
+                    {% for keyword in keywords %}
+                        <li>{{ keyword }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('keyword-form');
+        const loading = document.getElementById('loading');
+        const keywordsContainer = document.getElementById('keywords-container');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent default form submission
+            
+            const text = document.getElementById('text-input').value;
+            if (!text.trim()) {
+                alert("Please enter some text!");
+                return;
+            }
+
+            loading.style.display = 'block'; // Show loading spinner
+            keywordsContainer.innerHTML = ''; // Clear previous keywords
+
+            const formData = new FormData();
+            formData.append('text', text);
+
+            const response = await fetch('/extract_keywords', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+            loading.style.display = 'none'; // Hide loading spinner
+
+            if (response.ok) {
+                const keywords = data.keywords;
+                let keywordsList = '<h2>Extracted Keywords:</h2><ul>';
+                keywords.forEach(keyword => {
+                    keywordsList += `<li>${keyword}</li>`;
+                });
+                keywordsList += '</ul>';
+                keywordsContainer.innerHTML = keywordsList;
+            } else {
+                alert('Error extracting keywords');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+sklearn
+rake-nltk
+jinja2
